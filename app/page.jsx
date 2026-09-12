@@ -44,7 +44,7 @@ export default function Home() {
       document.body.style.overflow = 'hidden';
     }
 
-    const totalIntro = 76;
+    const totalIntro = 59;
     const indices = Array.from({ length: totalIntro }, (_, i) => i);
     let cursor = 0;
     let loaded = 0;
@@ -123,7 +123,11 @@ export default function Home() {
       let busy = 0;
       let next = 0;
 
+      let rafId = null;
+      let lastPaintedTarget = -1;
+
       const paint = () => {
+        rafId = null;
         let img = cache.get(target);
         if (!img) {
           for (let d = 1; d < totalFrames; d++) {
@@ -138,23 +142,35 @@ export default function Home() {
           }
         }
         if (!img || disposed || !canvas) return;
-        const dpr = Math.min(devicePixelRatio, 1.5);
+        const dpr = Math.min(window.devicePixelRatio || 1, 1.75);
         const w = Math.round(innerWidth * dpr);
         const h = Math.round(innerHeight * dpr);
         if (canvas.width !== w || canvas.height !== h) {
           canvas.width = w;
           canvas.height = h;
         }
-        const imgW = img.width || 1920;
-        const imgH = img.height || 1080;
+        const imgW = img.width || 1696;
+        const imgH = img.height || 956;
         const ratio = Math.max(w / imgW, h / imgH);
-        canvas.getContext('2d').drawImage(
-          img,
-          (w - imgW * ratio) / 2,
-          (h - imgH * ratio) / 2,
-          imgW * ratio,
-          imgH * ratio
-        );
+        const context = canvas.getContext('2d', { alpha: false, desynchronized: true });
+        if (context) {
+          context.imageSmoothingEnabled = true;
+          context.imageSmoothingQuality = 'high';
+          context.drawImage(
+            img,
+            (w - imgW * ratio) / 2,
+            (h - imgH * ratio) / 2,
+            imgW * ratio,
+            imgH * ratio
+          );
+        }
+        lastPaintedTarget = target;
+      };
+
+      const requestPaint = () => {
+        if (!rafId && !disposed) {
+          rafId = requestAnimationFrame(paint);
+        }
       };
 
       async function decode(n) {
@@ -167,12 +183,14 @@ export default function Home() {
             return;
           }
           cache.set(n, img);
-          while (cache.size > 24) {
+          while (cache.size > 36) {
             const k = cache.keys().next().value;
             cache.get(k).close();
             cache.delete(k);
           }
-          paint();
+          if (n === target || Math.abs(n - target) < Math.abs(lastPaintedTarget - target)) {
+            requestPaint();
+          }
         } catch (e) {
           console.warn(`Frame decode failed: ${slug}/${n}`, e);
         } finally {
@@ -183,7 +201,7 @@ export default function Home() {
       async function fetchFrame(n) {
         if (n >= totalFrames || disposed) return;
         if (blobs.has(n)) {
-          if (Math.abs(n - target) < 3) decode(n);
+          if (Math.abs(n - target) < 4) decode(n);
           return;
         }
         busy++;
@@ -193,7 +211,7 @@ export default function Home() {
           const blob = await r.blob();
           if (disposed) return;
           blobs.set(n, blob);
-          if (Math.abs(n - target) < 3) decode(n);
+          if (Math.abs(n - target) < 4) decode(n);
         } catch (e) {
           console.warn(`Frame fetch skipped: ${slug}/${n}`);
         } finally {
@@ -211,8 +229,8 @@ export default function Home() {
       const render = p => {
         target = Math.floor(Math.max(0, Math.min(1, p)) * (totalFrames - 1));
         decode(target);
-        paint();
-        for (let d = 1; d < 3; d++) {
+        requestPaint();
+        for (let d = 1; d <= 4; d++) {
           decode(target + d);
           decode(target - d);
         }
@@ -223,12 +241,13 @@ export default function Home() {
         decode(0);
       }
       cleanup.push(() => {
+        if (rafId) cancelAnimationFrame(rafId);
         cache.forEach(i => i.close());
       });
       return render;
     }
 
-    const drawPaper = sequence(newspaper.current, 'hero-journey', 76, introBlobsRef.current);
+    const drawPaper = sequence(newspaper.current, 'hero-journey', 59, introBlobsRef.current);
     drawPaperRef.current = drawPaper;
     const drawEnd = sequence(ending.current, 'gold-ending', 72);
 

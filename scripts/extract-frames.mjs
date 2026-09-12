@@ -11,7 +11,7 @@ for (const scene of scenes) {
   const directory = `public/frames/${scene.slug}`;
   mkdirSync(directory, { recursive: true });
   if (readdirSync(directory).filter(f => f.endsWith('.webp')).length === frameCount) { console.log(`${scene.slug}: already extracted`); continue; }
-  const result = spawnSync(ffmpeg, ['-y', '-threads', '2', '-i', join(sourceDirectory, scene.source), '-vf', `select='eq(n,round(selected_n*${scene.sourceFrames - 1}/${frameCount - 1}))'`, '-fps_mode', 'vfr', '-frames:v', String(frameCount), '-c:v', 'libwebp', '-quality', '76', '-compression_level', '0', '-threads', '2', `${directory}/%04d.webp`], { encoding: 'utf8' });
+  const result = spawnSync(ffmpeg, ['-y', '-threads', '2', '-i', join(sourceDirectory, scene.source), '-vf', `select='eq(n,round(selected_n*${scene.sourceFrames - 1}/${frameCount - 1}))'`, '-fps_mode', 'vfr', '-frames:v', String(frameCount), '-c:v', 'libwebp', '-lossless', scene.lossless ? '1' : '0', '-quality', scene.lossless ? '100' : '82', '-compression_level', '6', '-threads', '2', `${directory}/%04d.webp`], { encoding: 'utf8' });
   if (result.status !== 0) throw new Error(result.error?.message || result.stderr);
   const count = readdirSync(directory).filter(f => f.endsWith('.webp')).length;
   if (count !== frameCount) throw new Error(`${scene.slug}: expected ${frameCount} frames, found ${count}`);
