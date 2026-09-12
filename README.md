@@ -1,24 +1,34 @@
-# VESTIGE
+# VESTIGE — digital archive
 
-Next.js App Router, GSAP ScrollTrigger, and Framer Motion for catalog hover interactions.
+Next.js App Router with the existing GSAP / ScrollTrigger newspaper, object and magazine journey. The original photographs and frame sequences are retained.
 
-## Current journey
+## Architecture
 
-1. The newspaper reveal from `hero image.mp4` (`hero-journey`).
-2. The same continuous video reveals a silver-toned sculpture with bronze-colored triangular forms and left/right descriptions. The two chapters share 76 frames across the full 17.66-second clip, including its first and last frames.
-3. Six-image horizontal collection, ending with the supplied Ascend image.
-4. A fixed image clone morphs from the final card into the closing scene.
-5. Closing gold animation (`gold-ending`), followed by a scroll-driven catalog overlay on its held final frame.
+- `lib/objects.mjs`: six object records, image paths, descriptive observations, curator notes, material groups, archive counts, discovery and saved-memory validation.
+- `app/components/ArchiveExperience.jsx`: editorial collection, dynamic index, selected study, local object memory, random discovery and magazine entry.
+- `app/components/ObjectStudy.jsx`: passport, keyboard/touch material lens, light surrounds, visible structure annotations and curator note.
+- `app/page.jsx`: existing cinematic journey, collection entry points, archive continuation and native catalog dialog.
+- `app/archive.css`: scoped editorial archive styles and an unpinned reduced-motion alternative.
+- `app/CinematicPreloader.jsx`: supplied MP4, real-time thin progress line, readiness gate, session flag, scroll lock and failure deadline.
 
-Each stage has its own scroll range. Videos use canvas frame sequences; scrolling reverses their progress. No autoplay drives the scenes.
+The long introduction uses `sessionStorage` (`vestige-preloader-seen`). Studied objects use `localStorage` (`vestige-studied`). Both tolerate unavailable storage. Opening a study marks it studied; it is not a wishlist. The dialog uses native Escape, focus containment and focus restoration.
 
-## Assets and commands
+## Asset accuracy
 
-The current site uses 148 WebP frames: 76 native-resolution 848×478 opening frames and 72 closing frames. Six PNG images remain under `public/products`. The superseded opening sequences were removed; original user videos in Downloads are unchanged. The opening uses one preload queue and one canvas with a bounded decoded cache.
+Object records describe the supplied imagery and existing collection copy. Maker, age, provenance and dimensions remain unrecorded. Material groups are descriptive, not certificates. No scale scene is fabricated.
 
-- `npm run dev`: local preview.
-- `npm run build`: static export to `out`.
-- `node scripts/verify-assets.mjs`: verify all active frame dimensions and numbering.
-- `node scripts/extract-frames.mjs [source-directory]`: regenerate missing sequences, defaulting to Downloads. Source filenames are listed in `lib/assets.mjs`.
+Light Study changes the photographic surround, not the product pixels. True relighting needs additional photographs or a calibrated 3D asset. Structure annotates visible regions; it is not an X-ray and does not claim to reveal internal construction. A physically accurate exploded view needs separately masked components or 3D source assets. The archive history describes digital documentation, not an invented ownership history.
 
-Completed frame sequences are retained during extraction. `lib/journey.mjs` and its tests document the previous archive prototype; the current page uses `app/page.jsx`.
+Ascend retains `/products/ascend.png` and the existing `magazine-ending` frame sequence. No product substitution, media regeneration, or video conversion is performed.
+
+## Commands
+
+- `npm run dev`: preview on port 3001.
+- `npm run build`: production static export in `out`; preloader retained in `out/videos`.
+- `npm test`: archive-data and existing journey tests.
+- `node --experimental-test-isolation=none --test tests/*.test.mjs`: tests when the environment blocks worker processes.
+- `node scripts/verify-assets.mjs`: existing frame asset checks.
+
+## Manual checks
+
+Fresh session: muted video, 2px progress line, inert page and scroll lock, completion/fade/unlock. Reload: session skip. Reduced motion: no intro playback or pinned canvas journey. Inspect every object; use lens by pointer, touch drag and arrow keys. Switch light surrounds and structure annotations. Verify studied markers after reopen, discovery selection, Escape and focus return. Enter Archive from Ascend and scrub forward/back through the original magazine. Check portrait/landscape without horizontal overflow.

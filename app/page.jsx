@@ -2,17 +2,9 @@
 import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { motion } from 'framer-motion';
+import { objects } from '../lib/objects.mjs';
+import './archive.css';
 import CinematicPreloader from './CinematicPreloader';
-
-const products = [
-  ['Infinite reflection', 'Polished steel. A study in repetition.'],
-  ['Intersect', 'Weathered planes meet mirrored steel.'],
-  ['Golden ratio', 'Brushed brass, reflected inward.'],
-  ['Equilibrium', 'A quiet balance of mass and space.'],
-  ['Cadence', 'A rhythm of light and silver.'],
-  ['Ascend', 'Stepped gold forms on stitched leather.']
-];
 
 const chapters = ['The opening', 'The object', 'The collection', 'A closer look', 'The next discovery'];
 
@@ -24,6 +16,23 @@ export default function Home() {
   const clone = useRef();
   const finalImage = useRef();
   const dialog = useRef();
+  const [catalogOpen, setCatalogOpen] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
+  useEffect(() => {
+    const query = matchMedia('(prefers-reduced-motion: reduce)');
+    const update = () => setReducedMotion(query.matches);
+    update(); query.addEventListener('change', update);
+    return () => query.removeEventListener('change', update);
+  }, []);
+  useEffect(() => {
+    if (!catalogOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => { document.body.style.overflow = previous; };
+  }, [catalogOpen]);
+  function openCatalog() {
+    setCatalogOpen(true); dialog.current.showModal();
+  }
 
   // Shared in-memory frame cache
   const introBlobsRef = useRef(new Map());
@@ -39,6 +48,7 @@ export default function Home() {
   // Keep the existing frame cache ready behind the cinematic introduction.
   useEffect(() => {
     let disposed = false;
+    if (matchMedia('(prefers-reduced-motion: reduce)').matches) { setAppReady(true); return; }
     const controller = new AbortController();
     const totalIntro = 59;
     const indices = Array.from({ length: totalIntro }, (_, i) => i);
@@ -75,7 +85,7 @@ export default function Home() {
       disposed = true;
       controller.abort();
     };
-  }, []);
+  }, [reducedMotion]);
 
   useEffect(() => {
     if (preloaderPhase === 'done') ScrollTrigger.refresh();
@@ -83,6 +93,7 @@ export default function Home() {
 
   // GSAP scroll and canvas setup
   useEffect(() => {
+    if (reducedMotion || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     gsap.registerPlugin(ScrollTrigger);
     let disposed = false;
     const cleanup = [];
@@ -225,7 +236,7 @@ export default function Home() {
 
     const ctx = gsap.context(() => {
       const sections = gsap.utils.toArray('.scroll-scene');
-      const distance = [240, 280, 350, 170, 330];
+      const distance = innerWidth <= 700 ? [100, 100, 220, 100, 150] : [240, 280, 350, 170, 330];
 
       function state(i) {
         setChapter(i);
@@ -404,9 +415,10 @@ export default function Home() {
       ctx.revert();
       cleanup.forEach(f => f());
     };
-  }, []);
+  }, [reducedMotion]);
 
   function jump(i) {
+    if (reducedMotion) { document.querySelector(i >= 2 ? ".shopping-layer" : ".newspaper-layer")?.scrollIntoView(); return; }
     const s = document.querySelectorAll('.scroll-scene')[i];
     const t = ScrollTrigger.getAll().find(t => t.trigger === s && t.pin);
     if (t) window.scrollTo({ top: t.start + 1, behavior: 'instant' });
@@ -415,7 +427,7 @@ export default function Home() {
   return (
     <>
       <CinematicPreloader ready={appReady} onPhaseChange={setPreloaderPhase} />
-      <main ref={root} className={`cinematic-site cinematic-site--${preloaderPhase}`} inert={preloaderPhase !== 'done'}>
+      <main ref={root} className={`cinematic-site cinematic-site--${preloaderPhase} ${reducedMotion ? 'reduced-archive' : ''}`} inert={preloaderPhase !== 'done'}>
       {/* Main Interactive World */}
       <div className="world">
         <div className="newspaper-layer">
@@ -433,7 +445,7 @@ export default function Home() {
 
 
           <aside className="object-note object-left">
-            <p className="eyebrow">OBJECT STUDY / 001</p>
+            <p className="eyebrow">OBJECT STUDY / {objects[1].id}</p>
             <h2>Geometry,<br /><em>in motion.</em></h2>
             <p>A silver-toned cube meets angular, bronze-colored forms. As the sculpture turns, its contrasting surfaces reveal a new composition.</p>
             <span className="object-footnote">THE SCULPTURAL COLLECTION</span>
@@ -449,38 +461,39 @@ export default function Home() {
 
         <div className="shopping-layer">
           <div className="collection-label">
-            <p className="eyebrow">THE COLLECTION / SIX STUDIES</p>
+            <p className="eyebrow">THE COLLECTION / {objects.length} STUDIES</p>
             <h2>Material. <em>Made memorable.</em></h2>
           </div>
           <div className="product-strip" ref={strip}>
-            {products.map((p, i) => (
-              <article className="product-card" key={p[0]}>
+            {objects.map((p, i) => (
+              <article className="product-card" key={p.title}>
                 <div className="card-photo">
-                  <img ref={i === 5 ? finalImage : undefined} src={`/products/${i === 5 ? 'ascend' : i}.png`} alt={p[1]} />
+                  <img ref={i === 5 ? finalImage : undefined} src={p.image} alt={p.description} />
                 </div>
                 <div className="card-caption">
                   <span>0{i + 1}</span>
-                  <h3>{p[0]}</h3>
+                  <h3>{p.title}</h3>
                   <span>↗</span>
                 </div>
-                <p>{p[1]}</p>
+                <p>{p.description}</p>
+                <button className="study-link" onClick={() => openCatalog()}>View details ↗</button>
               </article>
             ))}
           </div>
         </div>
 
         <div className="morph-backdrop" />
-        <img className="morph-clone" ref={clone} src="/products/ascend.png" alt="Gold stepped sculpture emerging from the collection" />
+        <img className="morph-clone" ref={clone} src={objects[5].image} alt="Gold stepped sculpture emerging from the collection" />
         <img className="handoff-frame full-frame" src="/frames/magazine-ending/0001.webp" alt="" />
 
         <div className="ending-layer">
           <img className="full-frame" src="/frames/magazine-ending/0001.webp" alt="Gold stepped sculpture" />
           <canvas ref={ending} />
           <div className="closing">
-            <h2 className="closing-title"><span>EXPLORE</span> <span>OUR</span> <span>CATALOG</span></h2>
+            <h2 className="closing-title"><span>EXPLORE</span> <span>OUR</span> <span>PRODUCT</span></h2>
             <div className="closing-details">
               <p>Find the form that speaks to you.</p>
-              <button onClick={() => dialog.current.showModal()}>View the collection ↗</button>
+              <button onClick={() => openCatalog()}>View the collection ↗</button>
             </div>
           </div>
         </div>
@@ -488,9 +501,12 @@ export default function Home() {
 
       <div className="film" />
       <header>
-        <a href="#" className="wordmark" onClick={e => { e.preventDefault(); jump(0); }}>VESTIGE<sup>®</sup></a>
+        <a href="#" className="brand-logo" onClick={e => { e.preventDefault(); jump(0); }} aria-label="Wildform Studio home">
+          <img src="/logo-white.png" alt="Wildform Studio" className="brand-logo-img brand-logo-dark-mode" width="140" height="42" />
+          <img src="/logo.png" alt="Wildform Studio" className="brand-logo-img brand-logo-light-mode" width="140" height="42" />
+        </a>
         <span className="header-note">FORM / MATERIAL / PRESENCE</span>
-        <button onClick={() => dialog.current.showModal()}>The collection ↗</button>
+        <button onClick={() => openCatalog()}>The collection ↗</button>
       </header>
 
       <nav className="rail" aria-label="Chapters">
@@ -509,20 +525,22 @@ export default function Home() {
 
       {chapters.map(c => <section className="scroll-scene" key={c} aria-label={c} />)}
 
-      <dialog ref={dialog} className="catalog" onClick={e => { if (e.target === dialog.current) dialog.current.close(); }}>
+      <dialog ref={dialog} className="catalog" aria-label="The collection" onClose={() => setCatalogOpen(false)} onClick={e => { if (e.target === dialog.current) dialog.current.close(); }}>
         <div className="catalog-heading">
-          <span className="wordmark">VESTIGE</span>
+          <span className="brand-logo catalog-brand-logo">
+            <img src="/logo.png" alt="Wildform Studio" className="brand-logo-img" width="130" height="39" />
+          </span>
           <button autoFocus onClick={() => dialog.current.close()}>Close ×</button>
         </div>
         <p className="eyebrow">THE COLLECTION</p>
         <h2>Six studies in presence.</h2>
         <div className="product-grid">
-          {products.map((p, i) => (
-            <motion.article key={p[0]} whileHover={{ y: -4 }}>
-              <img src={`/products/${i === 5 ? 'ascend' : i}.png`} alt={p[1]} loading="lazy" />
-              <h3>{p[0]}</h3>
-              <p>{p[1]}</p>
-            </motion.article>
+          {objects.map((p, i) => (
+            <article key={p.title}>
+              <img src={p.image} alt={p.description} loading="lazy" />
+              <h3>{p.title}</h3>
+              <p>{p.description}</p>
+            </article>
           ))}
         </div>
       </dialog>

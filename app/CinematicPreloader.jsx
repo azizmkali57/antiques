@@ -100,21 +100,9 @@ export default function CinematicPreloader({ ready, onPhaseChange }) {
           }
         }}
         onEnded={() => { setProgress(1); setFinished(true); }} onError={() => setFailed(true)} />
-      <div className="cinematic-loading-status" role="progressbar" aria-label="Loading website"
-        aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}
-        aria-valuetext={finished ? 'Introduction complete. Preparing website.' : 'Playing introduction.'}>
-        <div className="cinematic-loading-word" aria-hidden="true">
-          <span className="cinematic-loading-lettering">LOAD</span>
-          <div className="cinematic-loading-segments">
-            <span className="cinematic-loading-marker" style={{ left: `${progress * 100}%` }}>
-              {Math.round(progress * 100)}
-            </span>
-            {Array.from({ length: 20 }, (_, index) => (
-              <i key={index} className={progress >= (index + 1) / 20 ? 'is-filled' : ''} />
-            ))}
-          </div>
-          <span className="cinematic-loading-lettering">NG</span>
-        </div>
+      <div className="cinematic-loading-status" role="progressbar" aria-label="Preparing archive"
+        aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress * 100)}>
+        <span style={{ transform: `scaleX(${progress})` }} />
       </div>
     </div>
   );
