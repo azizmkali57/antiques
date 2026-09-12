@@ -249,7 +249,7 @@ export default function Home() {
 
     const drawPaper = sequence(newspaper.current, 'hero-journey', 59, introBlobsRef.current);
     drawPaperRef.current = drawPaper;
-    const drawEnd = sequence(ending.current, 'gold-ending', 72);
+    const drawEnd = sequence(ending.current, 'magazine-ending', 54);
 
     const ctx = gsap.context(() => {
       const sections = gsap.utils.toArray('.scroll-scene');
@@ -360,7 +360,7 @@ export default function Home() {
       }
       measure();
 
-      const size = () => 800 * Math.max(innerWidth / 1920, innerHeight / 1080);
+      const size = () => 3000 * Math.max(innerWidth / 1920, innerHeight / 1080);
 
       gsap.timeline({
         scrollTrigger: {
@@ -535,10 +535,10 @@ export default function Home() {
 
         <div className="morph-backdrop" />
         <img className="morph-clone" ref={clone} src="/products/ascend.png" alt="Gold stepped sculpture emerging from the collection" />
-        <img className="handoff-frame full-frame" src="/frames/gold-ending/0001.webp" alt="" />
+        <img className="handoff-frame full-frame" src="/frames/magazine-ending/0001.webp" alt="" />
 
         <div className="ending-layer">
-          <img className="full-frame" src="/frames/gold-ending/0001.webp" alt="Gold stepped sculpture" />
+          <img className="full-frame" src="/frames/magazine-ending/0001.webp" alt="Gold stepped sculpture" />
           <canvas ref={ending} />
           <div className="closing">
             <h2 className="closing-title"><span>EXPLORE</span> <span>OUR</span> <span>CATALOG</span></h2>
