@@ -3,6 +3,7 @@ import { useEffect, useRef, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { motion } from 'framer-motion';
+import CinematicPreloader from './CinematicPreloader';
 
 const products = [
   ['Infinite reflection', 'Polished steel. A study in repetition.'],
@@ -32,29 +33,23 @@ export default function Home() {
   const [percent, setPercent] = useState(0);
   const [error, setError] = useState(false);
 
-  // Reference editorial preloader state
-  const [loadingProgress, setLoadingProgress] = useState(0);
-  const [isPreloaderVisible, setIsPreloaderVisible] = useState(true);
-  const [isDismissing, setIsDismissing] = useState(false);
+  const [appReady, setAppReady] = useState(false);
+  const [preloaderPhase, setPreloaderPhase] = useState('playing');
 
-  // Preload and cache frames before revealing site
+  // Keep the existing frame cache ready behind the cinematic introduction.
   useEffect(() => {
     let disposed = false;
-    if (typeof document !== 'undefined') {
-      document.body.style.overflow = 'hidden';
-    }
-
+    const controller = new AbortController();
     const totalIntro = 59;
     const indices = Array.from({ length: totalIntro }, (_, i) => i);
     let cursor = 0;
-    let loaded = 0;
     const concurrency = 6;
 
     async function worker() {
       while (cursor < indices.length && !disposed) {
         const idx = indices[cursor++];
         try {
-          const r = await fetch(`/frames/hero-journey/${String(idx + 1).padStart(4, '0')}.webp`);
+          const r = await fetch(`/frames/hero-journey/${String(idx + 1).padStart(4, '0')}.webp`, { signal: controller.signal });
           if (r.ok) {
             const blob = await r.blob();
             if (!disposed) {
@@ -66,48 +61,25 @@ export default function Home() {
           }
         } catch (err) {
           console.warn('Frame fetch warning:', idx, err);
-        } finally {
-          if (!disposed) {
-            loaded++;
-            const pct = Math.min(100, Math.round((loaded / totalIntro) * 100));
-            setLoadingProgress(pct);
-          }
         }
       }
     }
 
     Promise.all(Array.from({ length: concurrency }, () => worker())).then(() => {
       if (disposed) return;
-      setLoadingProgress(100);
-      if (drawPaperRef.current) {
-        drawPaperRef.current(0);
-      }
-
-      // Hold 100% briefly, then smoothly dissolve preloader
-      setTimeout(() => {
-        if (disposed) return;
-        setIsDismissing(true);
-        setTimeout(() => {
-          if (disposed) return;
-          setIsPreloaderVisible(false);
-          if (typeof document !== 'undefined') {
-            document.body.style.overflow = '';
-          }
-          ScrollTrigger.refresh();
-          if (drawPaperRef.current) {
-            drawPaperRef.current(0);
-          }
-        }, 750);
-      }, 350);
+      drawPaperRef.current?.(0);
+      setAppReady(true);
     });
 
     return () => {
       disposed = true;
-      if (typeof document !== 'undefined') {
-        document.body.style.overflow = '';
-      }
+      controller.abort();
     };
   }, []);
+
+  useEffect(() => {
+    if (preloaderPhase === 'done') ScrollTrigger.refresh();
+  }, [preloaderPhase]);
 
   // GSAP scroll and canvas setup
   useEffect(() => {
@@ -441,45 +413,9 @@ export default function Home() {
   }
 
   return (
-    <main ref={root}>
-      {/* Editorial Reference Split-Fill Loading Screen */}
-      {isPreloaderVisible && (
-        <div className={`ref-preloader ${isDismissing ? 'dismissing' : ''}`}>
-          <div className="ref-preloader-grain" />
-
-          {/* Top Ticker Row */}
-          <div className="ref-ticker">
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-          </div>
-
-          {/* Center Graphic Liquid-Fill Percentage */}
-          <div className="ref-counter-center">
-            <div
-              className="ref-counter-box"
-              style={{ '--fill-pct': `${loadingProgress}%` }}
-            >
-              <span className="ref-counter-outline">{loadingProgress}%</span>
-              <span className="ref-counter-fill" aria-hidden="true">
-                {loadingProgress}%
-              </span>
-            </div>
-          </div>
-
-          {/* Bottom Ticker Row */}
-          <div className="ref-ticker">
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-            <span>LOADING</span>
-          </div>
-        </div>
-      )}
-
+    <>
+      <CinematicPreloader ready={appReady} onPhaseChange={setPreloaderPhase} />
+      <main ref={root} className={`cinematic-site cinematic-site--${preloaderPhase}`} inert={preloaderPhase !== 'done'}>
       {/* Main Interactive World */}
       <div className="world">
         <div className="newspaper-layer">
@@ -591,5 +527,6 @@ export default function Home() {
         </div>
       </dialog>
     </main>
+    </>
   );
 }
