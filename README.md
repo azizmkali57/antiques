@@ -4,8 +4,8 @@ Next.js App Router, GSAP ScrollTrigger, and Framer Motion for catalog hover inte
 
 ## Current journey
 
-1. The supplied gold-sculpture transition opening (`gold-intro`).
-2. Rotating gold sculpture with left and right editorial descriptions (`gold-hero`).
+1. The newspaper reveal from `hero image.mp4` (`hero-journey`).
+2. The same continuous video reveals a silver-toned sculpture with bronze-colored triangular forms and left/right descriptions. The two chapters share 76 frames across the full 17.66-second clip, including its first and last frames.
 3. Six-image horizontal collection, ending with the supplied Ascend image.
 4. A fixed image clone morphs from the final card into the closing scene.
 5. Closing gold animation (`gold-ending`), followed by a scroll-driven catalog overlay on its held final frame.
@@ -14,7 +14,7 @@ Each stage has its own scroll range. Videos use canvas frame sequences; scrollin
 
 ## Assets and commands
 
-The current site uses 720 WebP frames in three folders under `public/frames`, and six PNG images under `public/products`. Old unused images and sequences were removed. Original user files in Downloads are unchanged.
+The current site uses 148 WebP frames: 76 native-resolution 848×478 opening frames and 72 closing frames. Six PNG images remain under `public/products`. The superseded opening sequences were removed; original user videos in Downloads are unchanged. The opening uses one preload queue and one canvas with a bounded decoded cache.
 
 - `npm run dev`: local preview.
 - `npm run build`: static export to `out`.

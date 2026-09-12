@@ -108,4 +108,6 @@
     font-size: clamp(80px, 22vw, 140px);
   }
 }
+/* One continuous canvas under the product detail overlays. */
+.newspaper-layer{z-index:2}.hero-layer{z-index:8;pointer-events:none}
 

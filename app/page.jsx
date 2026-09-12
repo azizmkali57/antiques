@@ -18,7 +18,6 @@ const chapters = ['The opening', 'The object', 'The collection', 'A closer look'
 export default function Home() {
   const root = useRef();
   const newspaper = useRef();
-  const hero = useRef();
   const ending = useRef();
   const strip = useRef();
   const clone = useRef();
@@ -27,7 +26,6 @@ export default function Home() {
 
   // Shared in-memory frame cache
   const introBlobsRef = useRef(new Map());
-  const heroBlobsRef = useRef(new Map());
   const drawPaperRef = useRef(null);
 
   const [chapter, setChapter] = useState(0);
@@ -46,7 +44,7 @@ export default function Home() {
       document.body.style.overflow = 'hidden';
     }
 
-    const totalIntro = 72;
+    const totalIntro = 76;
     const indices = Array.from({ length: totalIntro }, (_, i) => i);
     let cursor = 0;
     let loaded = 0;
@@ -56,7 +54,7 @@ export default function Home() {
       while (cursor < indices.length && !disposed) {
         const idx = indices[cursor++];
         try {
-          const r = await fetch(`/frames/gold-intro/${String(idx + 1).padStart(4, '0')}.webp`);
+          const r = await fetch(`/frames/hero-journey/${String(idx + 1).padStart(4, '0')}.webp`);
           if (r.ok) {
             const blob = await r.blob();
             if (!disposed) {
@@ -84,23 +82,6 @@ export default function Home() {
       if (drawPaperRef.current) {
         drawPaperRef.current(0);
       }
-
-      // Warm up Chapter 2 (gold-hero) in the background
-      let heroCursor = 0;
-      const heroIndices = Array.from({ length: 72 }, (_, i) => i);
-      async function heroWorker() {
-        while (heroCursor < heroIndices.length && !disposed) {
-          const hIdx = heroIndices[heroCursor++];
-          try {
-            const r = await fetch(`/frames/gold-hero/${String(hIdx + 1).padStart(4, '0')}.webp`);
-            if (r.ok) {
-              const b = await r.blob();
-              if (!disposed) heroBlobsRef.current.set(hIdx, b);
-            }
-          } catch (_) {}
-        }
-      }
-      Array.from({ length: 4 }, () => heroWorker());
 
       // Hold 100% briefly, then smoothly dissolve preloader
       setTimeout(() => {
@@ -186,7 +167,7 @@ export default function Home() {
             return;
           }
           cache.set(n, img);
-          while (cache.size > 72) {
+          while (cache.size > 24) {
             const k = cache.keys().next().value;
             cache.get(k).close();
             cache.delete(k);
@@ -237,7 +218,7 @@ export default function Home() {
         }
       };
 
-      pump();
+      if (!externalBlobs) pump();
       if (blobs.has(0)) {
         decode(0);
       }
@@ -247,9 +228,8 @@ export default function Home() {
       return render;
     }
 
-    const drawPaper = sequence(newspaper.current, 'gold-intro', 72, introBlobsRef.current);
+    const drawPaper = sequence(newspaper.current, 'hero-journey', 76, introBlobsRef.current);
     drawPaperRef.current = drawPaper;
-    const drawHero = sequence(hero.current, 'gold-hero', 72, heroBlobsRef.current);
     const drawEnd = sequence(ending.current, 'gold-ending', 72);
 
     const ctx = gsap.context(() => {
@@ -258,7 +238,7 @@ export default function Home() {
 
       function state(i) {
         setChapter(i);
-        gsap.set('.newspaper-layer', { visibility: i === 0 ? 'visible' : 'hidden' });
+        gsap.set('.newspaper-layer', { visibility: i <= 1 ? 'visible' : 'hidden' });
         gsap.set('.hero-layer', { visibility: i <= 1 ? 'visible' : 'hidden' });
         gsap.set('.shopping-layer', { visibility: i <= 3 ? 'visible' : 'hidden' });
         gsap.set('.ending-layer', { visibility: i === 4 ? 'visible' : 'hidden' });
@@ -288,9 +268,8 @@ export default function Home() {
           scrub: true
         }
       })
-        .to(nf, { p: 1, duration: 0.88, ease: 'none', onUpdate: () => drawPaper(nf.p) }, 0)
-        .to('.intro', { opacity: 0, y: -35, duration: 0.22 }, 0)
-        .to('.newspaper-layer', { opacity: 0, duration: 0.12 }, 0.88);
+        .to(nf, { p: 1, duration: 1, ease: 'none', onUpdate: () => drawPaper(nf.p * 0.45) }, 0)
+        .to('.intro', { opacity: 0, y: -35, duration: 0.22 }, 0);
 
       const hf = { p: 0 };
       gsap.timeline({
@@ -301,9 +280,9 @@ export default function Home() {
           scrub: true
         }
       })
-        .to(hf, { p: 1, duration: 0.88, ease: 'none', onUpdate: () => drawHero(hf.p) }, 0)
+        .to(hf, { p: 1, duration: 0.88, ease: 'none', onUpdate: () => drawPaper(0.45 + hf.p * 0.55) }, 0)
         .fromTo('.object-note', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.13, stagger: 0.035 }, 0)
-        .to('.hero-layer', { opacity: 0, duration: 0.12 }, 0.88);
+        .to('.newspaper-layer,.hero-layer', { opacity: 0, duration: 0.12 }, 0.88);
 
       const travel = () => {
         const card = strip.current?.lastElementChild;
@@ -419,8 +398,7 @@ export default function Home() {
       });
 
       const resize = () => {
-        drawPaper(nf.p);
-        drawHero(hf.p);
+        drawPaper(window.scrollY >= triggers[1].start ? 0.45 + hf.p * 0.55 : nf.p * 0.45);
         drawEnd(ef.p);
       };
       window.addEventListener('resize', resize);
@@ -486,7 +464,7 @@ export default function Home() {
       {/* Main Interactive World */}
       <div className="world">
         <div className="newspaper-layer">
-          <img className="full-frame" src="/frames/gold-intro/0001.webp" alt="Gold sculpture transition opening" />
+          <img className="full-frame" src="/frames/hero-journey/0001.webp" alt="A newspaper reveals a silver-toned sculpture with bronze-colored triangular forms" />
           <canvas ref={newspaper} />
           <div className="intro">
             <p className="eyebrow">FIELD NOTES / VOLUME II</p>
@@ -497,20 +475,20 @@ export default function Home() {
         </div>
 
         <div className="hero-layer">
-          <img className="full-frame" src="/frames/gold-hero/0001.webp" alt="Rotating gold cube sculpture" />
-          <canvas ref={hero} />
+
+
           <aside className="object-note object-left">
             <p className="eyebrow">OBJECT STUDY / 001</p>
             <h2>Geometry,<br /><em>in motion.</em></h2>
-            <p>Open gold planes frame the space between them. Every turn reveals a new composition.</p>
+            <p>A silver-toned cube meets angular, bronze-colored forms. As the sculpture turns, its contrasting surfaces reveal a new composition.</p>
             <span className="object-footnote">THE SCULPTURAL COLLECTION</span>
           </aside>
           <aside className="object-note object-right">
             <p className="eyebrow">LIGHT / FORM / BALANCE</p>
             <h3>A different<br /><em>perspective.</em></h3>
-            <p>Reflective edges catch the light, while the open centre keeps the form beautifully weightless.</p>
-            <div className="object-spec"><span>FORM</span><b>Nested geometry</b></div>
-            <div className="object-spec"><span>EXPRESSION</span><b>Golden reflections</b></div>
+            <p>Brushed metallic planes catch the light against warm, textured triangles. A dark plinth and stitched tan base ground the composition.</p>
+            <div className="object-spec"><span>FORM</span><b>Cube & triangular forms</b></div>
+            <div className="object-spec"><span>EXPRESSION</span><b>Silver & bronze tones</b></div>
           </aside>
         </div>
 
