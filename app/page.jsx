@@ -5,6 +5,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { objects } from '../lib/objects.mjs';
 import './archive.css';
 import CinematicPreloader from './CinematicPreloader';
+import ProductCarousel from './components/ProductCarousel';
 
 const chapters = ['The opening', 'The object', 'The collection', 'A closer look', 'The next discovery'];
 
@@ -12,7 +13,7 @@ export default function Home() {
   const root = useRef();
   const newspaper = useRef();
   const ending = useRef();
-  const strip = useRef();
+  const swiperRef = useRef(null);
   const clone = useRef();
   const finalImage = useRef();
   const dialog = useRef();
@@ -286,60 +287,31 @@ export default function Home() {
         .fromTo('.object-note', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.13, stagger: 0.035 }, 0)
         .to('.newspaper-layer,.hero-layer', { opacity: 0, duration: 0.12 }, 0.88);
 
-      const travel = () => {
-        const card = strip.current?.lastElementChild;
-        if (!card) return 0;
-        return innerWidth / 2 - (card.offsetLeft + card.offsetWidth / 2);
-      };
-
-      gsap.to(strip.current, {
-        x: travel,
+      gsap.to({ p: 0 }, {
+        p: 1,
         ease: 'none',
         scrollTrigger: {
           trigger: sections[2],
           start: () => triggers[2].start,
           end: () => triggers[2].end,
           scrub: true,
-          invalidateOnRefresh: true
-        }
-      });
-
-      gsap.to('.product-card:not(:last-child)', {
-        opacity: 0.28,
-        filter: 'grayscale(1)',
-        scrollTrigger: {
-          trigger: sections[2],
-          start: () => triggers[2].start + (triggers[2].end - triggers[2].start) * 0.75,
-          end: () => triggers[2].end,
-          scrub: true
-        }
-      });
-
-      gsap.fromTo(
-        '.product-card:last-child',
-        { scale: 0.96 },
-        {
-          scale: 1,
-          scrollTrigger: {
-            trigger: sections[2],
-            start: () => triggers[2].start + (triggers[2].end - triggers[2].start) * 0.75,
-            end: () => triggers[2].end,
-            scrub: true
+          invalidateOnRefresh: true,
+          onUpdate: (self) => {
+            if (swiperRef.current && !swiperRef.current.destroyed) {
+              const totalSlides = objects.length;
+              const index = Math.round(self.progress * (totalSlides - 1));
+              if (swiperRef.current.activeIndex !== index) {
+                swiperRef.current.slideTo(index);
+              }
+            }
           }
         }
-      );
+      });
 
       let startRect;
       function measure() {
-        const card = strip.current?.lastElementChild;
-        if (!card || !finalImage.current) return;
-        const oldScale = gsap.getProperty(card, 'scale');
-        const oldX = gsap.getProperty(strip.current, 'x');
-        gsap.set(card, { scale: 1 });
-        gsap.set(strip.current, { x: travel() });
+        if (!finalImage.current) return;
         startRect = finalImage.current.getBoundingClientRect();
-        gsap.set(strip.current, { x: oldX });
-        gsap.set(card, { scale: oldScale });
       }
       measure();
 
@@ -464,22 +436,10 @@ export default function Home() {
             <p className="eyebrow">THE COLLECTION / {objects.length} STUDIES</p>
             <h2>Material. <em>Made memorable.</em></h2>
           </div>
-          <div className="product-strip" ref={strip}>
-            {objects.map((p, i) => (
-              <article className="product-card" key={p.title}>
-                <div className="card-photo">
-                  <img ref={i === 5 ? finalImage : undefined} src={p.image} alt={p.description} />
-                </div>
-                <div className="card-caption">
-                  <span>0{i + 1}</span>
-                  <h3>{p.title}</h3>
-                  <span>↗</span>
-                </div>
-                <p>{p.description}</p>
-                <button className="study-link" onClick={() => openCatalog()}>View details ↗</button>
-              </article>
-            ))}
-          </div>
+          <ProductCarousel 
+            onSwiperInit={(swiper) => { swiperRef.current = swiper; }} 
+            finalImageRef={finalImage} 
+          />
         </div>
 
         <div className="morph-backdrop" />
@@ -505,8 +465,19 @@ export default function Home() {
           <img src="/logo-white.png" alt="Wildform Studio" className="brand-logo-img brand-logo-dark-mode" width="140" height="42" />
           <img src="/logo.png" alt="Wildform Studio" className="brand-logo-img brand-logo-light-mode" width="140" height="42" />
         </a>
-        <span className="header-note">FORM / MATERIAL / PRESENCE</span>
-        <button onClick={() => openCatalog()}>The collection ↗</button>
+        
+        <div className="header-actions">
+          <div className="search-container">
+            <svg className="action-icon search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" className="search-input" placeholder="Search..." />
+          </div>
+          <button className="action-btn" aria-label="Account">
+            <svg className="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          </button>
+          <button className="action-btn" aria-label="Cart">
+            <svg className="action-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+          </button>
+        </div>
       </header>
 
       <nav className="rail" aria-label="Chapters">
@@ -517,11 +488,8 @@ export default function Home() {
         ))}
       </nav>
 
-      <footer>
-        <span>0{chapter + 1} / 05 <b>{chapters[chapter]}</b></span>
-        <span>{error ? 'Some images could not load. Reload to retry.' : 'SCROLL TO EXPLORE'}　{percent}%</span>
-      </footer>
       <div className="progress-line" style={{ transform: `scaleX(${percent / 100})` }} />
+
 
       {chapters.map(c => <section className="scroll-scene" key={c} aria-label={c} />)}
 
@@ -544,6 +512,21 @@ export default function Home() {
           ))}
         </div>
       </dialog>
+
+      <footer>
+        <div className="footer-content">
+          <div className="footer-demo-info">
+            <h4>About VESTIGE</h4>
+            <p>A curated collection of vintage and modern artifacts. Quality, history, and design.</p>
+          </div>
+          <div className="footer-links">
+            <a href="#">Terms of Service</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Contact Us</a>
+            <a href="#">FAQ</a>
+          </div>
+        </div>
+      </footer>
     </main>
     </>
   );

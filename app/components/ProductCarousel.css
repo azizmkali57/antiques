@@ -1,0 +1,392 @@
+/* ==========================================================================
+   Orbital 3D Curved Arc Product Carousel
+   Vestige / Sculptural Collection
+   ========================================================================== */
+
+.product-carousel-container {
+  position: absolute;
+  top: 24%;
+  left: 0;
+  width: 100vw;
+  height: 68vh;
+  min-height: 520px;
+  background-color: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  touch-action: pan-y;
+  cursor: grab;
+  outline: none;
+  overflow: visible;
+  z-index: 10;
+}
+
+.product-carousel-container.is-dragging {
+  cursor: grabbing;
+}
+
+/* 3D Perspective Stage */
+.orbital-stage {
+  position: relative;
+  width: 100%;
+  max-width: 1500px;
+  height: 480px;
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+  transform-style: preserve-3d;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+/* Orbital Product Card */
+.orbital-product-card {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: clamp(280px, 24vw, 360px);
+  background-color: #ffffff;
+  border-radius: 20px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 12px 36px -8px rgba(25, 24, 19, 0.12), 0 4px 12px -2px rgba(25, 24, 19, 0.06);
+  border: 1px solid rgba(137, 118, 92, 0.22);
+  transform-origin: center center;
+  will-change: transform, opacity, filter;
+  backface-visibility: hidden;
+  transition: box-shadow 0.4s ease, border-color 0.4s ease;
+  cursor: pointer;
+}
+
+.orbital-product-card:hover {
+  box-shadow: 0 20px 48px -10px rgba(25, 24, 19, 0.2), 0 8px 20px -4px rgba(25, 24, 19, 0.1);
+  border-color: rgba(137, 118, 92, 0.45);
+}
+
+.orbital-product-card.is-active {
+  box-shadow: 0 30px 65px -12px rgba(25, 24, 19, 0.26), 0 14px 28px -6px rgba(25, 24, 19, 0.14);
+  border-color: rgba(184, 142, 74, 0.6);
+  cursor: default;
+}
+
+/* Sculpture Photograph Plinth */
+.orbital-product-card .card-photo {
+  position: relative;
+  width: 100%;
+  height: clamp(200px, 22vh, 270px);
+  background: radial-gradient(circle at 50% 70%, #f6f3ed 0%, #ebe6dc 100%);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(137, 118, 92, 0.14);
+}
+
+.photo-plinth-glow {
+  position: absolute;
+  bottom: 0;
+  left: 15%;
+  right: 15%;
+  height: 25px;
+  background: radial-gradient(ellipse at 50% 100%, rgba(25, 24, 19, 0.08) 0%, transparent 75%);
+  pointer-events: none;
+}
+
+.orbital-product-card .card-photo img {
+  width: 82%;
+  height: 82%;
+  object-fit: contain;
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+  filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.12));
+}
+
+.orbital-product-card:hover .card-photo img {
+  transform: translateY(-4px) scale(1.03);
+}
+
+.orbital-product-card.is-active .card-photo img {
+  transform: translateY(-2px) scale(1.02);
+}
+
+/* Card Content & Typography */
+.orbital-product-card .card-text-container {
+  padding: 20px 22px;
+  display: flex;
+  flex-direction: column;
+  background-color: #ffffff;
+  position: relative;
+}
+
+.orbital-product-card .card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 6px;
+}
+
+.orbital-product-card .card-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.orbital-product-card .card-number {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: #8c8273;
+  margin-bottom: 2px;
+  font-family: var(--mono, monospace);
+}
+
+.orbital-product-card .card-title {
+  font-size: 20px;
+  font-weight: 500;
+  margin: 0;
+  font-family: var(--serif, 'Playfair Display', serif);
+  color: #191813;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.orbital-product-card .card-arrow {
+  font-size: 16px;
+  color: #8c8273;
+  transition: transform 0.3s ease, color 0.3s ease;
+  margin-left: 8px;
+}
+
+.orbital-product-card:hover .card-arrow {
+  transform: translate(2px, -2px);
+  color: #191813;
+}
+
+/* Material & Form Badges */
+.card-tags {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 10px;
+  font-size: 11px;
+  font-family: var(--mono, monospace);
+  letter-spacing: 0.08em;
+  color: #796e60;
+  text-transform: uppercase;
+}
+
+.card-tag-separator {
+  opacity: 0.4;
+}
+
+.orbital-product-card .card-description {
+  font-size: 13.5px;
+  line-height: 1.48;
+  color: #5d564c;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Active Study Indicator */
+.card-active-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed rgba(137, 118, 92, 0.25);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  font-family: var(--mono, monospace);
+  color: #9c6c28;
+  font-weight: 600;
+}
+
+.indicator-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #b88e4a;
+  box-shadow: 0 0 0 rgba(184, 142, 74, 0.4);
+  animation: pulse-ring 2s infinite cubic-bezier(0.45, 0, 0.2, 1);
+}
+
+@keyframes pulse-ring {
+  0% {
+    box-shadow: 0 0 0 0 rgba(184, 142, 74, 0.6);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(184, 142, 74, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(184, 142, 74, 0);
+  }
+}
+
+/* ==========================================================================
+   Orbital Navigation & Pagination Bar
+   ========================================================================== */
+
+.orbital-navigation-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 18px;
+  z-index: 50;
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  padding: 6px 14px;
+  border-radius: 30px;
+  border: 1px solid rgba(137, 118, 92, 0.2);
+  box-shadow: 0 8px 24px -6px rgba(25, 24, 19, 0.08);
+}
+
+.orbital-nav-btn {
+  background: transparent;
+  border: 1px solid rgba(137, 118, 92, 0.25);
+  color: #191813;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.orbital-nav-btn:hover:not(:disabled) {
+  background: #191813;
+  color: #f6f3ed;
+  border-color: #191813;
+  transform: scale(1.08);
+}
+
+.orbital-nav-btn:disabled {
+  opacity: 0.25;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Pagination Meter */
+.orbital-pagination {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.orbital-dot {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.orbital-dot .dot-inner {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background-color: rgba(25, 24, 19, 0.25);
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.orbital-dot:hover .dot-inner {
+  background-color: rgba(25, 24, 19, 0.5);
+  transform: scale(1.2);
+}
+
+.orbital-dot.is-active .dot-inner {
+  width: 22px;
+  border-radius: 8px;
+  background-color: #191813;
+}
+
+/* Interaction Hint */
+.orbital-hint {
+  margin-top: 10px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  font-family: var(--mono, monospace);
+  color: rgba(25, 24, 19, 0.45);
+  text-transform: uppercase;
+}
+
+/* ==========================================================================
+   Responsive Adaptations
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .product-carousel-container {
+    top: 22%;
+    height: 72vh;
+  }
+
+  .orbital-stage {
+    height: 440px;
+  }
+
+  .orbital-product-card {
+    width: clamp(260px, 60vw, 320px);
+  }
+
+  .orbital-product-card .card-photo {
+    height: 210px;
+  }
+
+  .orbital-product-card .card-text-container {
+    padding: 16px 18px;
+  }
+
+  .orbital-product-card .card-title {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 600px) {
+  .product-carousel-container {
+    top: 20%;
+    height: 75vh;
+  }
+
+  .orbital-stage {
+    height: 400px;
+  }
+
+  .orbital-product-card {
+    width: clamp(240px, 78vw, 290px);
+    border-radius: 16px;
+  }
+
+  .orbital-product-card .card-photo {
+    height: 180px;
+  }
+
+  .orbital-product-card .card-text-container {
+    padding: 14px 16px;
+  }
+
+  .orbital-product-card .card-title {
+    font-size: 17px;
+  }
+
+  .orbital-product-card .card-description {
+    font-size: 12.5px;
+    -webkit-line-clamp: 2;
+  }
+
+  .card-active-indicator {
+    display: none;
+  }
+}
