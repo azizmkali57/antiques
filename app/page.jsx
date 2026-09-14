@@ -15,6 +15,7 @@ export default function Home() {
   const ending = useRef();
   const swiperRef = useRef(null);
   const clone = useRef();
+  const shrinkClone = useRef();
   const finalImage = useRef();
   const dialog = useRef();
   const [catalogOpen, setCatalogOpen] = useState(false);
@@ -246,6 +247,7 @@ export default function Home() {
         gsap.set('.shopping-layer', { visibility: i <= 3 ? 'visible' : 'hidden' });
         gsap.set('.ending-layer', { visibility: i === 4 ? 'visible' : 'hidden' });
         gsap.set(clone.current, { visibility: i === 3 ? 'visible' : 'hidden' });
+        gsap.set(shrinkClone.current, { visibility: i <= 1 ? 'visible' : 'hidden' });
         gsap.set('.morph-backdrop,.handoff-frame', { visibility: i === 3 ? 'visible' : 'hidden' });
       }
 
@@ -283,9 +285,32 @@ export default function Home() {
           scrub: true
         }
       })
-        .to(hf, { p: 1, duration: 0.88, ease: 'none', onUpdate: () => drawPaper(0.45 + hf.p * 0.55) }, 0)
+        .to(hf, { p: 1, duration: 0.68, ease: 'none', onUpdate: () => drawPaper(0.45 + hf.p * 0.55) }, 0)
         .fromTo('.object-note', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.13, stagger: 0.035 }, 0)
-        .to('.newspaper-layer,.hero-layer', { opacity: 0, duration: 0.12 }, 0.88);
+        .to('.object-note', { opacity: 0, y: -18, duration: 0.08 }, 0.62)
+        .fromTo(
+          shrinkClone.current,
+          { scale: 1, opacity: 0 },
+          { opacity: 1, duration: 0.06 },
+          0.64
+        )
+        .to('.newspaper-layer,.hero-layer', { opacity: 0, duration: 0.12 }, 0.66)
+        .to(
+          shrinkClone.current,
+          {
+            scale: 0,
+            opacity: 0,
+            duration: 0.24,
+            ease: 'power2.inOut'
+          },
+          0.74
+        )
+        .fromTo(
+          '.product-carousel-container',
+          { opacity: 0.35, scale: 0.94 },
+          { opacity: 1, scale: 1, duration: 0.20, ease: 'power1.out' },
+          0.78
+        );
 
       gsap.to({ p: 0 }, {
         p: 1,
@@ -438,8 +463,9 @@ export default function Home() {
           />
         </div>
 
+        <img className="shrink-clone" ref={shrinkClone} src="products/-1.png" alt="Study 002 Intersect" />
         <div className="morph-backdrop" />
-        <img className="morph-clone" ref={clone} src={objects[5].image} alt="Gold stepped sculpture emerging from the collection" />
+        <img className="morph-clone" ref={clone} src={objects[objects.length-1].img} alt="Gold stepped sculpture emerging from the collection" />
         <img className="handoff-frame full-frame" src="/frames/magazine-ending/0001.webp" alt="" />
 
         <div className="ending-layer">
