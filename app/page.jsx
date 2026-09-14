@@ -308,14 +308,11 @@ export default function Home() {
         }
       });
 
-      let startRect;
-      function measure() {
-        if (!finalImage.current) return;
-        startRect = finalImage.current.getBoundingClientRect();
-      }
-      measure();
+
 
       const size = () => 3000 * Math.max(innerWidth / 1920, innerHeight / 1080);
+      const centerX = () => innerWidth / 2;
+      const centerY = () => innerHeight / 2 - 25 * Math.max(innerWidth / 1920, innerHeight / 1080);
 
       gsap.timeline({
         scrollTrigger: {
@@ -323,22 +320,21 @@ export default function Home() {
           start: () => triggers[3].start,
           end: () => triggers[3].end,
           scrub: true,
-          invalidateOnRefresh: true,
-          onRefreshInit: measure
+          invalidateOnRefresh: true
         }
       })
         .fromTo(
           clone.current,
           {
-            x: () => startRect?.x || 0,
-            y: () => startRect?.y || 0,
-            width: () => startRect?.width || 0,
-            height: () => startRect?.height || 0,
+            x: centerX,
+            y: centerY,
+            width: 0,
+            height: 0,
             opacity: 1
           },
           {
-            x: () => innerWidth / 2 - size() / 2,
-            y: () => innerHeight / 2 - size() / 2 - 25 * Math.max(innerWidth / 1920, innerHeight / 1080),
+            x: () => centerX() - size() / 2,
+            y: () => centerY() - size() / 2,
             width: size,
             height: size,
             duration: 1,
@@ -434,7 +430,7 @@ export default function Home() {
         <div className="shopping-layer">
           <div className="collection-label">
             <p className="eyebrow">THE COLLECTION / {objects.length} STUDIES</p>
-            <h2>Material. <em>Made memorable.</em></h2>
+            {/* <h2>Material. <em>Made memorable.</em></h2> */}
           </div>
           <ProductCarousel 
             onSwiperInit={(swiper) => { swiperRef.current = swiper; }} 

@@ -69,6 +69,10 @@ canvas {
 }
 
 .shopping-layer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
   z-index: 1;
   background: #d6cbb7;
   color: var(--ink);
@@ -143,8 +147,9 @@ header button {
 
 .collection-label {
   position: absolute;
+  margin-top: 0;
   left: 7%;
-  top: 16%
+  top: clamp(65px, 8vh, 90px);
 }
 
 .collection-label h2 {
@@ -434,7 +439,7 @@ footer b {
   }
 
   .collection-label {
-    top: 17%;
+    top: clamp(60px, 8vh, 85px);
     left: 7%
   }
 

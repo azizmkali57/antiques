@@ -312,7 +312,7 @@ export default function ProductCarousel({ onSwiperInit, finalImageRef }) {
       </div>
 
       {/* Orbital Navigation Controls & Pagination Meter */}
-      <div className="orbital-navigation-bar" aria-label="Carousel navigation">
+      {/* <div className="orbital-navigation-bar" aria-label="Carousel navigation">
         <button
           type="button"
           className="orbital-nav-btn orbital-prev"
@@ -351,12 +351,12 @@ export default function ProductCarousel({ onSwiperInit, finalImageRef }) {
         >
           <span aria-hidden="true">→</span>
         </button>
-      </div>
+      </div> */}
 
       {/* Subtle interaction cue */}
-      <div className="orbital-hint" aria-hidden="true">
+      {/* <div className="orbital-hint" aria-hidden="true">
         <span>DRAG OR SCROLL TO ORBIT</span>
-      </div>
+      </div> */}
     </div>
   );
 }
