@@ -465,7 +465,7 @@ export default function Home() {
 
         <img className="shrink-clone" ref={shrinkClone} src="products/-1.png" alt="Study 002 Intersect" />
         <div className="morph-backdrop" />
-        <img className="morph-clone" ref={clone} src={objects[objects.length-1].img} alt="Gold stepped sculpture emerging from the collection" />
+        <img className="morph-clone" ref={clone} src="products/ascend.png" alt="Gold stepped sculpture emerging from the collection" />
         <img className="handoff-frame full-frame" src="/frames/magazine-ending/0001.webp" alt="" />
 
         <div className="ending-layer">
